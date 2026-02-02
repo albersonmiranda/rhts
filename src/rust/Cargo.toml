@@ -1,0 +1,18 @@
+[package]
+name = 'rhts'
+publish = false
+version = '0.1.0'
+edition = '2021'
+rust-version = '1.84'
+
+[lib]
+crate-type = [ 'staticlib' ]
+name = 'rhts'
+
+[dependencies]
+extendr-api = '0.8.1'
+hts-core = { git = "https://github.com/albersonmiranda/hts-rs" }
+
+[profile.release]
+lto = true
+codegen-units = 1
