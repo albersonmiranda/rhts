@@ -11,5 +11,10 @@
     "configure.win": "shellscript",
     "cleanup": "shellscript",
     "cleanup.win": "shellscript"
-  }
+  },
+
+  // Licenser
+  "licenser.author": "Alberson Miranda",
+  "licenser.license": "GPLv3",
+  "licenser.projectName": "rhts",
 }

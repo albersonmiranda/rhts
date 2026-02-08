@@ -10,8 +10,9 @@ crate-type = [ 'staticlib' ]
 name = 'rhts'
 
 [dependencies]
-extendr-api = '0.8.1'
+extendr-api = {git = 'https://github.com/extendr/extendr.git'}
 hts-core = { git = "https://github.com/albersonmiranda/hts-rs" }
+polars = { version = "0.46", features = ["lazy", "csv"] }
 
 [profile.release]
 lto = true

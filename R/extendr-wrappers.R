@@ -10,9 +10,238 @@
 #' @useDynLib rhts, .registration = TRUE
 NULL
 
-#' Return string `"Hello world!"` to R.
+#' Specification of hierarchical and grouped structure.
+#' @description
+#' Defines the hierarchical and grouped structure of time series data.
+#' Hierarchical columns have strict parent-child nesting, while grouped columns
+#' cross with the hierarchy at all levels.
+#' @param hierarchy (`character`)\cr
+#' Columns with strict parent-child nesting, ordered from top to bottom.
+#' @usage NULL
+#' @format NULL
 #' @export
-hello_world <- function() .Call(wrap__hello_world)
+#'
+#' @section Methods:
+#'\subsection{Method `new`}{
+#'Create a new HierarchySpec
+#' \subsection{Arguments}{
+#'\describe{
+#'\item{`hierarchy`}{Character vector of hierarchical column names (ordered from top to bottom)}
+#'\item{`groups`}{Character vector of grouped column names}
+#'}}
+#' \subsection{description}{
+#'Instantiate a new HierarchySpec
+#'}
+#' \subsection{return}{
+#'A new HierarchySpec object
+#'}
+#'}
+#'
+#'\subsection{Method `hierarchical`}{
+#'Create a spec with only hierarchical columns (no grouping)
+#' \subsection{Arguments}{
+#'\describe{
+#'\item{`columns`}{Character vector of hierarchical column names}
+#'}}
+#' \subsection{return}{
+#'A new HierarchySpec object
+#'}
+#'}
+#'
+#'\subsection{Method `grouped`}{
+#'Create a spec with only grouped columns (no hierarchy)
+#' \subsection{Arguments}{
+#'\describe{
+#'\item{`columns`}{Character vector of grouped column names}
+#'}}
+#' \subsection{return}{
+#'A new HierarchySpec object
+#'}
+#'}
+#'
+#'\subsection{Method `print`}{
+#'Print method for HierarchySpec
+#'}
+#'
+#' @examples
+#'## ---- Method `new` ---- ##
+#'# Hierarchical only
+#'spec <- HierarchySpec$new(hierarchy = c("State", "Region"), groups = c())
+#'
+#'# Hierarchical with groups
+#'spec <- HierarchySpec$new(
+#'hierarchy = c("State", "Region"),
+#'groups = c("Purpose")
+#')
+#'
+#'## ---- Method `hierarchical` ---- ##
+#'spec <- HierarchySpec$hierarchical(c("State", "Region"))
+#'
+#'## ---- Method `grouped` ---- ##
+#'spec <- HierarchySpec$grouped(c("Product", "Category"))
+#'
+#'
+HtsSpec <- new.env(parent = emptyenv())
+
+HtsSpec$new <- function(hierarchy, groups) .Call(wrap__HtsSpec__new, hierarchy, groups)
+
+HtsSpec$hierarchical <- function(columns) .Call(wrap__HtsSpec__hierarchical, columns)
+
+HtsSpec$grouped <- function(columns) .Call(wrap__HtsSpec__grouped, columns)
+
+HtsSpec$print <- function() .Call(wrap__HtsSpec__print, self)
+
+#' @rdname HtsSpec
+#' @usage NULL
+#' @export
+`$.HtsSpec` <- function (self, name) { func <- HtsSpec[[name]]; environment(func) <- environment(); func }
+
+#' @export
+`[[.HtsSpec` <- `$.HtsSpec`
+
+#' Hierarchical Time Series
+#' @description
+#' Main data structure for working with hierarchical and/or grouped time series.
+#' Holds bottom-level data along with computed hierarchy tree and summation matrix.
+#' @export
+#'
+#' @section Methods:
+#'\subsection{Method `new`}{
+#'Create a new HierarchicalTimeSeries
+#' \subsection{Arguments}{
+#'\describe{
+#'\item{`bottom_level`}{Dataframe containing the time series data}
+#'\item{`spec`}{HierarchySpec object defining the structure}
+#'\item{`time_col`}{Name of the time/period column}
+#'\item{`value_col`}{Name of the value column}
+#'}}
+#' \subsection{description}{
+#'Instantiate a new HierarchicalTimeSeries
+#'}
+#' \subsection{return}{
+#'A new HierarchicalTimeSeries object
+#'}
+#'}
+#'
+#'\subsection{Method `from_csv`}{
+#'Load from CSV file
+#' \subsection{Arguments}{
+#'\describe{
+#'\item{`path`}{Path to CSV file}
+#'\item{`spec`}{HierarchySpec object defining the structure}
+#'\item{`time_col`}{Name of the time/period column}
+#'\item{`value_col`}{Name of the value column}
+#'}}
+#' \subsection{return}{
+#'A new HierarchicalTimeSeries object
+#'}
+#'}
+#'
+#'\subsection{Method `n_series`}{
+#'Get total number of series (all aggregation levels)
+#' \subsection{return}{
+#'Integer count of total series
+#'}
+#'}
+#'
+#'\subsection{Method `n_bottom`}{
+#'Get number of bottom-level series
+#' \subsection{return}{
+#'Integer count of bottom-level series
+#'}
+#'}
+#'
+#'\subsection{Method `n_periods`}{
+#'Get number of time periods
+#' \subsection{return}{
+#'Integer count of time periods
+#'}
+#'}
+#'
+#'\subsection{Method `print`}{
+#'Print summary of the hierarchical structure
+#'}
+#'
+#'\subsection{Method `summation_matrix`}{
+#'Get summation matrix with row and column labels
+#' \subsection{return}{
+#'List containing the matrix and its labels
+#'}
+#'}
+#'
+#'\subsection{Method `aggregated_series`}{
+#'Get aggregated series
+#' \subsection{return}{
+#'Dataframe containing all series with their hierarchical labels
+#'}
+#'}
+#'
+#' @examples
+#'## ---- Method `new` ---- ##
+#'hts_data <- data.frame(
+#'state = c(
+#'rep("Rio de Janeiro", 4), rep("São Paulo", 4),
+#'rep("Rio de Janeiro", 4), rep("São Paulo", 4)
+#'),
+#'city = c(
+#'rep("Rio de Janeiro", 2), rep("Duque de Caxias", 2),
+#'rep("São Paulo", 2), rep("Campinas", 2),
+#'rep("Rio de Janeiro", 2), rep("Duque de Caxias", 2),
+#'rep("São Paulo", 2), rep("Campinas", 2)
+#'),
+#'sector = c(
+#'rep("Industry", 8), rep("Agriculture", 8)
+#'),
+#'quarter = c(
+#'rep("2024 Q1", 16), rep("2024 Q2", 16)
+#'),
+#'gdp = c(
+#'1000, 500, 150, 120,
+#'2000, 800, 300, 200,
+#'1500, 800, 200, 150,
+#'2200, 900, 400, 300,
+#'1100, 600, 180, 130,
+#'2100, 850, 320, 220,
+#'1600, 850, 220, 160,
+#'2300, 950, 420, 320
+#')
+#')
+#'spec <- HtsSpec$new(c("state", "city"), c("sector"))
+#'hts <- Hts$new(hts_data, spec, "quarter", "gdp")
+#'
+#'## ---- Method `from_csv` ---- ##
+#'\dontrun{
+#'write.csv(tsibble::tourism, "data.csv", row.names = FALSE)
+#'spec <- HierarchySpec$new(c("State", "Region"), c("Purpose"))
+#'hts <- HierarchicalTimeSeries$from_csv("data.csv", spec, "Quarter", "Trips")
+#'}
+#'
+#'
+Hts <- new.env(parent = emptyenv())
+
+Hts$new <- function(bottom_level, spec, time_col, value_col) .Call(wrap__Hts__new, bottom_level, spec, time_col, value_col)
+
+Hts$from_csv <- function(path, spec, time_col, value_col) .Call(wrap__Hts__from_csv, path, spec, time_col, value_col)
+
+Hts$n_series <- function() .Call(wrap__Hts__n_series, self)
+
+Hts$n_bottom <- function() .Call(wrap__Hts__n_bottom, self)
+
+Hts$n_periods <- function() .Call(wrap__Hts__n_periods, self)
+
+Hts$print <- function() .Call(wrap__Hts__print, self)
+
+Hts$summation_matrix <- function() .Call(wrap__Hts__summation_matrix, self)
+
+Hts$aggregated_series <- function() .Call(wrap__Hts__aggregated_series, self)
+
+#' @rdname Hts
+#' @usage NULL
+#' @export
+`$.Hts` <- function (self, name) { func <- Hts[[name]]; environment(func) <- environment(); func }
+
+#' @export
+`[[.Hts` <- `$.Hts`
 
 
 # nolint end
